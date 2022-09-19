@@ -1,0 +1,4 @@
+matplotlib==3.6.0
+pandas==1.4.4
+pre-commit==2.20.0
+scikit_learn==1.1.2
