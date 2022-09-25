@@ -19,18 +19,20 @@ class FishnetDataset(Dataset):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0] + ".jpg")
         image = read_image(img_path)
         x_min = self.img_labels.iloc[idx, 2]
-        x_max = self.img_labels.iloc[idx, 3]
+        x_max = self.img_labels.iloc[idx, 3:]
         y_min = self.img_labels.iloc[idx, 4]
         y_max = self.img_labels.iloc[idx, 5]
         box = torch.as_tensor([[x_min, y_min, x_max, y_max]], dtype=torch.float32)
         label = self.img_labels.iloc[idx, 7]
         area = (box[:, 3] - box[:, 1]) * (box[:, 2] - box[:, 0])
 
+        targets = []
         target = {}
-        target["box"] = box
-        target["label"] = label
-        target["area"] = area
+        target["boxes"] = box
+        target["labels"] = label
+        targets.append(target)
+        # target["area"] = area
         if self.transform:
             image = self.transform(image)
 
-        return image, label
+        return image, targets
