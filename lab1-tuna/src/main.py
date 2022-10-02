@@ -27,6 +27,7 @@ if __name__ == "__main__":
     for i in range(1, cols * rows + 1):
         sample_idx = torch.randint(len(train_data), size=(1,)).item()
         img, target = train_data[sample_idx]
+
         figure.add_subplot(rows, cols, i)
         plt.title(target["labels"][0])
         plt.axis("off")
