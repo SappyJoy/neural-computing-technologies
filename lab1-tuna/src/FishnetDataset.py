@@ -2,6 +2,7 @@ import os.path
 
 import pandas as pd
 import torch
+from config import CLASSES
 from torch.utils.data import Dataset
 from torchvision.io import read_image
 
@@ -25,28 +26,29 @@ class FishnetDataset(Dataset):
                 self.image_boxes[filename].append([x_min, y_min, x_max, y_max, label])
             else:
                 self.image_boxes[filename] = [[x_min, y_min, x_max, y_max, label]]
-        self.image_boxes = self.image_boxes.items()
+        self.image_boxes = list(self.image_boxes.items())
 
     def __len__(self):
         return len(self.img_labels)
 
     def __getitem__(self, idx):
-        img_path = os.path.join(self.img_dir, +".jpg")
+        img_path = os.path.join(self.img_dir, self.image_boxes[idx][0] + ".jpg")
         image = read_image(img_path)
-        params = self.image_boxes[idx]
+        params = self.image_boxes[idx][1]
         boxes = []
         labels = []
         areas = []
         for param in params:
-            boxes.append(torch.as_tensor(params[0:3]))
-            labels.append(params[4])
+            boxes.append(param[0:4])
+            labels.append(CLASSES.index(param[4]))
             areas.append((param[2] - param[0]) * (param[3] - param[1]))
 
-        # targets = []
-        target = {"box": box, "label": label, "area": area}
-        # targets.append(target)
-        # target["area"] = area
-        if self.transform:
-            image = self.transform(image)
+        boxes = torch.as_tensor(boxes, dtype=torch.float32)
+        labels = torch.as_tensor(labels, dtype=torch.int64)
 
-        return image, boxes, labels
+        target = {"boxes": boxes, "labels": labels, "area": areas}
+
+        if self.transform is not None:
+            img, target = self.transform(image, target)
+
+        return image, target
