@@ -2,9 +2,10 @@ import os.path
 
 import pandas as pd
 import torch
-from config import CLASSES
 from torch.utils.data import Dataset
 from torchvision.io import read_image
+
+from config import CLASSES
 
 
 class FishnetDataset(Dataset):

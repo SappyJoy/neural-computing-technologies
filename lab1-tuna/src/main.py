@@ -2,11 +2,12 @@ import matplotlib.pyplot as plt
 import torch
 import torch.optim as optim
 import torchvision.ops
-from FishnetDataset import FishnetDataset
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter  # TensorBoard support
 from torchvision import transforms
 from torchvision.models.detection.ssd import SSD300_VGG16_Weights, ssd300_vgg16
+
+from FishnetDataset import FishnetDataset
 
 if __name__ == "__main__":
     tb = SummaryWriter(comment="Run simple cnn on mnist")

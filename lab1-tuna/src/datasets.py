@@ -1,8 +1,9 @@
 import cv2
-from config import BATCH_SIZE
-from FishnetDataset import FishnetDataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
+
+from FishnetDataset import FishnetDataset
+from config import BATCH_SIZE
 from utils import collate_fn
 
 train_dataset = FishnetDataset(
