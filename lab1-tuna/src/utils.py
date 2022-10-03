@@ -1,3 +1,4 @@
+import PIL
 import albumentations as A
 import cv2
 import numpy as np
@@ -53,3 +54,6 @@ def get_valid_transform():
         'format': 'pascal_voc',
         'label_fields': ['labels']
     })
+
+def tensor_to_image(tensor):
+    return tensor.numpy()

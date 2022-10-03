@@ -13,6 +13,7 @@ from config import CLASSES, RESIZE_TO
 class FishnetDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None):
         self.img_labels = pd.read_csv(annotations_file)
+        self.img_labels = self.img_labels.query('label_l2 == "YFT"')
         self.img_dir = img_dir
         self.transform = transform
 
@@ -32,7 +33,7 @@ class FishnetDataset(Dataset):
         self.image_boxes = list(self.image_boxes.items())
 
     def __len__(self):
-        return len(self.image_boxes)
+        return 10
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.image_boxes[idx][0] + ".jpg")
