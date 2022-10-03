@@ -1,38 +1,15 @@
-import torch.nn as nn
-import torch.nn.functional as F
+import torchvision
+
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 
-# Пример нейронной сети
-class SimpleCNN(nn.Module):
-    def __init__(self):
-        super().__init__()
+def create_model(num_classes):
+    # load Faster RCNN pre-trained model
+    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
 
-        self.conv1 = nn.Conv2d(1, 128, 5)
-        self.pool1 = nn.MaxPool2d(2, 2)
-        self.drop1 = nn.Dropout(p=0.3)
+    # get the number of input features
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    # define a new head for the detector with required number of classes
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
-        self.conv2 = nn.Conv2d(128, 224, 5)
-        self.pool2 = nn.MaxPool2d(2, 2)
-        self.drop2 = nn.Dropout(p=0.4)
-
-        self.fc3 = nn.Linear(224 * 4 * 4, 64)
-        self.drop3 = nn.Dropout(p=0.4)
-
-        self.fc4 = nn.Linear(64, 32)
-        self.drop4 = nn.Dropout(p=0.4)
-
-        self.fc5 = nn.Linear(32, 10)
-        self.softmax = nn.Softmax(dim=1)
-
-    def forward(self, x):
-        x = self.drop1(self.pool1(F.relu(self.conv1(x))))
-        x = self.drop2(self.pool2(F.relu(self.conv2(x))))
-
-        x = x.view(-1, 224 * 4 * 4)
-
-        x = self.drop3(F.relu(self.fc3(x)))
-        x = self.drop4(F.relu(self.fc4(x)))
-
-        x = self.softmax(self.fc5(x))
-
-        return x
+    return model

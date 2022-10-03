@@ -3,9 +3,11 @@ import os.path
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
-from torchvision.io import read_image
+import cv2
+import numpy as np
+from albumentations.pytorch import ToTensorV2
 
-from config import CLASSES
+from config import CLASSES, RESIZE_TO
 
 
 class FishnetDataset(Dataset):
@@ -30,26 +32,44 @@ class FishnetDataset(Dataset):
         self.image_boxes = list(self.image_boxes.items())
 
     def __len__(self):
-        return len(self.img_labels)
+        return len(self.image_boxes)
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.image_boxes[idx][0] + ".jpg")
-        image = read_image(img_path)
+        image = cv2.imread(img_path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
+        image_resized = cv2.resize(image, (RESIZE_TO, RESIZE_TO))
+        image_resized /= 255.0
+
+        # get the height and width of the image
+        image_width = image.shape[1]
+        image_height = image.shape[0]
+
         params = self.image_boxes[idx][1]
         boxes = []
         labels = []
-        areas = []
+        # areas = []
         for param in params:
-            boxes.append(param[0:4])
+            xmin_final = (param[0] / image_width) * RESIZE_TO
+            xmax_final = (param[2] / image_width) * RESIZE_TO
+            ymin_final = (param[1] / image_height) * RESIZE_TO
+            ymax_final = (param[3] / image_height) * RESIZE_TO
+            boxes.append([xmin_final, ymin_final, xmax_final, ymax_final])
             labels.append(CLASSES.index(param[4]))
-            areas.append((param[2] - param[0]) * (param[3] - param[1]))
+            # areas.append((xmax_final - xmin_final) * (ymax_final - ymin_final))
 
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
         labels = torch.as_tensor(labels, dtype=torch.int64)
+        area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
 
-        target = {"boxes": boxes, "labels": labels, "area": areas}
+        target = {"boxes": boxes, "labels": labels, "area": area}
 
         if self.transform is not None:
-            img, target = self.transform(image, target)
+            # img, target = self.transform(image, target)
+            sample = self.transform(image=image_resized,
+                                     bboxes=target['boxes'],
+                                     labels=labels)
+            image_resized = sample['image']
+            target['boxes'] = torch.Tensor(sample['bboxes'])
 
-        return image, target
+        return image_resized, target

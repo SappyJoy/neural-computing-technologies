@@ -39,10 +39,12 @@ CLASSES = [
     "OTH",
     "YFT",
 ]
-NUM_CLASSES = 5
+NUM_CLASSES = len(CLASSES)
 # whether to visualize images after creating the data loaders
 VISUALIZE_TRANSFORMED_IMAGES = False
 # location to save model and plots
 OUT_DIR = "../outputs"
 SAVE_PLOTS_EPOCH = 2  # save loss plots after these many epochs
 SAVE_MODEL_EPOCH = 2  # save model after these many epochs
+
+RANDOM_SEED = 30
