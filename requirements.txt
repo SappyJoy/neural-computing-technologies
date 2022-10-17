@@ -1,7 +1,7 @@
 autoflake==1.6.0
 black==22.8.0
 isort==5.10.1
-matplotlib==3.6.0
+matplotlib==3.6.1
 numpy==1.22.0
 opencv-python==4.6.0.66
 pandas==1.4.4

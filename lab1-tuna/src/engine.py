@@ -106,7 +106,6 @@ if __name__ == '__main__':
         figure_2, valid_ax = plt.subplots()
         # start timer and carry out training and validation
         start = time.time()
-        train_loss, trained_model = train(train_loader, model)
 
         prog_bar_train = tqdm(train_loader, total=len(train_loader))
 
@@ -153,16 +152,15 @@ if __name__ == '__main__':
         print(f"Epoch #{epoch} validation loss: {val_loss_hist.value:.3f}")
         end = time.time()
         print(f"Took {((end - start) / 60):.3f} minutes for epoch {epoch}")
-        model=trained_model
         if (epoch + 1) % SAVE_MODEL_EPOCH == 0:  # save model after every n epochs
-            torch.save(trained_model.state_dict(), f"{OUT_DIR}/model{epoch + 1}.pth")
+            torch.save(model.state_dict(), f"{OUT_DIR}/model{epoch + 1}.pth")
             print('SAVING MODEL COMPLETE...\n')
 
         if (epoch + 1) % SAVE_PLOTS_EPOCH == 0:  # save loss plots after n epochs
-            train_ax.plot(train_loss, color='blue')
+            train_ax.plot(train_loss_list, color='blue')
             train_ax.set_xlabel('iterations')
             train_ax.set_ylabel('train loss')
-            valid_ax.plot(val_loss, color='red')
+            valid_ax.plot(val_loss_list, color='red')
             valid_ax.set_xlabel('iterations')
             valid_ax.set_ylabel('validation loss')
             figure_1.savefig(f"{OUT_DIR}/train_loss_{epoch + 1}.png")
@@ -170,10 +168,10 @@ if __name__ == '__main__':
             print('SAVING PLOTS COMPLETE...')
 
         if (epoch + 1) == NUM_EPOCHS:  # save loss plots and model once at the end
-            train_ax.plot(train_loss, color='blue')
+            train_ax.plot(train_loss_list, color='blue')
             train_ax.set_xlabel('iterations')
             train_ax.set_ylabel('train loss')
-            valid_ax.plot(val_loss, color='red')
+            valid_ax.plot(val_loss_list, color='red')
             valid_ax.set_xlabel('iterations')
             valid_ax.set_ylabel('validation loss')
             figure_1.savefig(f"{OUT_DIR}/train_loss_{epoch + 1}.png")
