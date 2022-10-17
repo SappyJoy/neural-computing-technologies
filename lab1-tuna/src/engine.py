@@ -6,6 +6,8 @@ from utils import Averager
 from tqdm.auto import tqdm
 from datasets import train_loader, valid_loader
 import torch
+# import matplotlib
+# matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from torch.nn import CrossEntropyLoss, MSELoss
 import time
@@ -105,7 +107,48 @@ if __name__ == '__main__':
         # start timer and carry out training and validation
         start = time.time()
         train_loss, trained_model = train(train_loader, model)
-        val_loss = validate(valid_loader, trained_model)
+
+        prog_bar_train = tqdm(train_loader, total=len(train_loader))
+
+        for i, data in enumerate(prog_bar_train):
+            images, targets = data
+
+            images = list(image.to(DEVICE) for image in images)
+            targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
+            loss_dict = model(images, targets)
+            losses = sum(loss for loss in loss_dict.values())
+            loss_value = losses.item()
+            train_loss_list.append(loss_value)
+            train_loss_hist.send(loss_value)
+
+            optimizer.zero_grad()
+            losses.backward()
+            optimizer.step()
+            train_itr += 1
+
+            # update the loss value beside the progress bar for each iteration
+            prog_bar_train.set_description(desc=f"Loss: {loss_value:.4f}")
+
+
+        prog_bar_val = tqdm(valid_loader, total=len(valid_loader))
+
+        for i, data in enumerate(prog_bar_val):
+            images, targets = data
+
+            images = list(image.to(DEVICE) for image in images)
+            targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
+
+            with torch.no_grad():
+                loss_dict = model(images, targets)
+            losses = sum(loss for loss in loss_dict.values())
+            loss_value = losses.item()
+            val_loss_list.append(loss_value)
+            val_loss_hist.send(loss_value)
+            val_itr += 1
+            # update the loss value beside the progress bar for each iteration
+            prog_bar_val.set_description(desc=f"Loss: {loss_value:.4f}")
+
+
         print(f"Epoch #{epoch} train loss: {train_loss_hist.value:.3f}")
         print(f"Epoch #{epoch} validation loss: {val_loss_hist.value:.3f}")
         end = time.time()

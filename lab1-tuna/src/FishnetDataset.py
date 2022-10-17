@@ -33,7 +33,8 @@ class FishnetDataset(Dataset):
         self.image_boxes = list(self.image_boxes.items())
 
     def __len__(self):
-        return 10
+        return 100
+        # return len(self.image_boxes)
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.image_boxes[idx][0] + ".jpg")

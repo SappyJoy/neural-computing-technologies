@@ -36,7 +36,7 @@ class ObjectDetector(Module):
             Dropout(),
             Linear(512, self.numClasses)
         )
-        # set the classifier of our base model to produce outputs
+        # set the classifier of our base model to produce outputs_100
         # from the last convolution block
         self.baseModel.fc = Identity()
 
@@ -46,5 +46,5 @@ class ObjectDetector(Module):
         features = self.baseModel(x)
         bboxes = self.regressor(features)
         class_logits = self.classifier(features)
-        # return the outputs as a tuple
+        # return the outputs_100 as a tuple
         return bboxes, class_logits

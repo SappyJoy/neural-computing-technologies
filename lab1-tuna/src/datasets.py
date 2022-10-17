@@ -20,8 +20,8 @@ valid_dataset = FishnetDataset(
     img_dir="../resources/images",
     transform=get_valid_transform(),
 )
-train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0, collate_fn=collate_fn)
-valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0, collate_fn=collate_fn)
+train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=os.cpu_count(), collate_fn=collate_fn)
+valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=os.cpu_count(), collate_fn=collate_fn)
 print(f"Number of training samples: {len(train_dataset)}")
 print(f"Number of validation samples: {len(valid_dataset)}\n")
 
