@@ -1,9 +1,6 @@
-import PIL
 import albumentations as A
-import cv2
-import numpy as np
 from albumentations.pytorch import ToTensorV2
-from config import DEVICE, CLASSES as classes
+import torchvision.transforms as transform
 
 
 # this class keeps track of the training and validation loss values...
@@ -46,6 +43,7 @@ def get_train_transform():
         'label_fields': ['labels']
     })
 
+
 # define the validation transforms
 def get_valid_transform():
     return A.Compose([
@@ -55,5 +53,7 @@ def get_valid_transform():
         'label_fields': ['labels']
     })
 
+
 def tensor_to_image(tensor):
-    return tensor.numpy()
+    transformer = transform.ToPILImage()
+    return transformer(tensor)

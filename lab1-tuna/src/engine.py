@@ -7,8 +7,13 @@ from tqdm.auto import tqdm
 from datasets import train_loader, valid_loader
 import torch
 import matplotlib.pyplot as plt
+from torch.nn import CrossEntropyLoss, MSELoss
 import time
 plt.style.use('ggplot')
+
+
+classLossFunc = CrossEntropyLoss()
+bboxLossFunc = MSELoss()
 
 
 # function for running training iterations
@@ -21,7 +26,6 @@ def train(train_data_loader, model):
     prog_bar = tqdm(train_data_loader, total=len(train_data_loader))
 
     for i, data in enumerate(prog_bar):
-        optimizer.zero_grad()
         images, targets = data
 
         images = list(image.to(DEVICE) for image in images)
@@ -31,16 +35,15 @@ def train(train_data_loader, model):
         loss_value = losses.item()
         train_loss_list.append(loss_value)
         train_loss_hist.send(loss_value)
+
+        optimizer.zero_grad()
         losses.backward()
         optimizer.step()
         train_itr += 1
 
         # update the loss value beside the progress bar for each iteration
         prog_bar.set_description(desc=f"Loss: {loss_value:.4f}")
-    return train_loss_list
-
-
-
+    return train_loss_list, model
 
 
 # function for running validation iterations
@@ -90,10 +93,6 @@ if __name__ == '__main__':
     # name to save the trained model with
     MODEL_NAME = 'model'
     # whether to show transformed images from data loader or not
-    if VISUALIZE_TRANSFORMED_IMAGES:
-        from utils import show_tranformed_image
-
-        show_tranformed_image(train_loader)
     # start the training epochs
     for epoch in range(NUM_EPOCHS):
         print(f"\nEPOCH {epoch + 1} of {NUM_EPOCHS}")
@@ -105,14 +104,15 @@ if __name__ == '__main__':
         figure_2, valid_ax = plt.subplots()
         # start timer and carry out training and validation
         start = time.time()
-        train_loss = train(train_loader, model)
-        val_loss = validate(valid_loader, model)
+        train_loss, trained_model = train(train_loader, model)
+        val_loss = validate(valid_loader, trained_model)
         print(f"Epoch #{epoch} train loss: {train_loss_hist.value:.3f}")
         print(f"Epoch #{epoch} validation loss: {val_loss_hist.value:.3f}")
         end = time.time()
         print(f"Took {((end - start) / 60):.3f} minutes for epoch {epoch}")
+        model=trained_model
         if (epoch + 1) % SAVE_MODEL_EPOCH == 0:  # save model after every n epochs
-            torch.save(model.state_dict(), f"{OUT_DIR}/model{epoch + 1}.pth")
+            torch.save(trained_model.state_dict(), f"{OUT_DIR}/model{epoch + 1}.pth")
             print('SAVING MODEL COMPLETE...\n')
 
         if (epoch + 1) % SAVE_PLOTS_EPOCH == 0:  # save loss plots after n epochs
@@ -138,3 +138,4 @@ if __name__ == '__main__':
             torch.save(model.state_dict(), f"{OUT_DIR}/model{epoch + 1}.pth")
 
         plt.close('all')
+        time.sleep(5)

@@ -2,6 +2,7 @@ import cv2
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import random
+import os
 import numpy as np
 
 from FishnetDataset import FishnetDataset
@@ -24,27 +25,30 @@ valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=False, n
 print(f"Number of training samples: {len(train_dataset)}")
 print(f"Number of validation samples: {len(valid_dataset)}\n")
 
-if __name__ == "__main__":
-    # sanity check of the Dataset pipeline with sample visualization
-    print(f"Number of training images: {len(train_dataset)}")
+# if __name__ == "__main__":
+#     # sanity check of the Dataset pipeline with sample visualization
+#     print(f"Number of training images: {len(train_dataset)}")
 
-    # function to visualize a single sample
-    def visualize_sample(image, target):
-        image_ = tensor_to_image(image).transpose((1, 2, 0)).astype(np.uint8).copy()
-        for i in range(len(target["boxes"])):
-            box = target["boxes"][i]
-            label = target["labels"][i]
-            cv2.rectangle(image_, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 255, 0), 1)
-            cv2.putText(image_, CLASSES[label], (int(box[2]), int(box[1] + 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
-                        (0, 0, 255), 2)
 
-        cv2.imshow("Image", image_)
-        cv2.waitKey(0)
+#     # function to visualize a single sample
+#     def visualize_sample(image, target):
+#         image_ = tensor_to_image(image)
+#         for i in range(len(target["boxes"])):
+#             box = target["boxes"][i]
+#             label = target["labels"][i]
+#             img1 = ImageDraw.Draw(image_)
+#             img1.rectangle([int(box[0]), int(box[1]), int(box[2]), int(box[3])],
+#                            outline="green")
 
-    NUM_SAMPLES_TO_VISUALIZE = 15
-    for i in range(NUM_SAMPLES_TO_VISUALIZE):
-        indx = random.randint(0,len(train_dataset))
-        print(indx)
-        image_, target = train_dataset[indx]
-        print(target["labels"][0])
-        visualize_sample(image_, target)
+#             img1.text((int(box[2]), int(box[1])), CLASSES[label], (255, 255, 255))
+
+#         image_.show()
+
+
+#     NUM_SAMPLES_TO_VISUALIZE = 5
+#     for i in range(NUM_SAMPLES_TO_VISUALIZE):
+#         indx = random.randint(0, len(train_dataset))
+#         print(indx)
+#         image_, target = train_dataset[indx]
+#         print(target["labels"][0])
+#         visualize_sample(image_, target)

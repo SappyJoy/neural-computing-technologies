@@ -25,7 +25,7 @@ class FishnetDataset(Dataset):
             x_max = self.img_labels.iloc[i, 3]
             y_min = self.img_labels.iloc[i, 4]
             y_max = self.img_labels.iloc[i, 5]
-            label = self.img_labels.iloc[i, 7]
+            label = self.img_labels.iloc[i, 6]
             if filename in self.image_boxes:
                 self.image_boxes[filename].append([x_min, y_min, x_max, y_max, label])
             else:
