@@ -1,15 +1,13 @@
-import torchvision
+from torchvision.models import resnet50
 
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+from object_detector import ObjectDetector
 
 
 def create_model(num_classes):
-    # load Faster RCNN pre-trained model
-    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+    resnet = resnet50(pretrained=True)
+    # freeze all ResNet50 layers so they will *not* be updated during the
+    # training process
+    for param in resnet.parameters():
+        param.requires_grad = False
 
-    # get the number of input features
-    in_features = model.roi_heads.box_predictor.cls_score.in_features
-    # define a new head for the detector with required number of classes
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-
-    return model
+    return ObjectDetector(resnet, num_classes)

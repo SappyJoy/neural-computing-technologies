@@ -1,79 +1,22 @@
-from config import DEVICE, NUM_CLASSES, NUM_EPOCHS, OUT_DIR
-from config import VISUALIZE_TRANSFORMED_IMAGES
-from config import SAVE_PLOTS_EPOCH, SAVE_MODEL_EPOCH
-from model import create_model
-from utils import Averager
-from tqdm.auto import tqdm
-from datasets import train_loader, valid_loader
-import torch
+import time
+
 # import matplotlib
 # matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+import torch
 from torch.nn import CrossEntropyLoss, MSELoss
-import time
-plt.style.use('ggplot')
+from tqdm.auto import tqdm
 
+from config import DEVICE, NUM_CLASSES, NUM_EPOCHS, OUT_DIR
+from config import SAVE_PLOTS_EPOCH, SAVE_MODEL_EPOCH
+from datasets import train_loader, valid_loader
+from model import create_model
+from utils import Averager
+
+plt.style.use('ggplot')
 
 classLossFunc = CrossEntropyLoss()
 bboxLossFunc = MSELoss()
-
-
-# function for running training iterations
-def train(train_data_loader, model):
-    print('Training')
-    global train_itr
-    global train_loss_list
-
-    # initialize tqdm progress bar
-    prog_bar = tqdm(train_data_loader, total=len(train_data_loader))
-
-    for i, data in enumerate(prog_bar):
-        images, targets = data
-
-        images = list(image.to(DEVICE) for image in images)
-        targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
-        loss_dict = model(images, targets)
-        losses = sum(loss for loss in loss_dict.values())
-        loss_value = losses.item()
-        train_loss_list.append(loss_value)
-        train_loss_hist.send(loss_value)
-
-        optimizer.zero_grad()
-        losses.backward()
-        optimizer.step()
-        train_itr += 1
-
-        # update the loss value beside the progress bar for each iteration
-        prog_bar.set_description(desc=f"Loss: {loss_value:.4f}")
-    return train_loss_list, model
-
-
-# function for running validation iterations
-def validate(valid_data_loader, model):
-    print('Validating')
-    global val_itr
-    global val_loss_list
-
-    # initialize tqdm progress bar
-    prog_bar = tqdm(valid_data_loader, total=len(valid_data_loader))
-
-    for i, data in enumerate(prog_bar):
-        images, targets = data
-
-        images = list(image.to(DEVICE) for image in images)
-        targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
-
-        with torch.no_grad():
-            loss_dict = model(images, targets)
-        losses = sum(loss for loss in loss_dict.values())
-        loss_value = losses.item()
-        val_loss_list.append(loss_value)
-        val_loss_hist.send(loss_value)
-        val_itr += 1
-        # update the loss value beside the progress bar for each iteration
-        prog_bar.set_description(desc=f"Loss: {loss_value:.4f}")
-    return val_loss_list
-
 
 if __name__ == '__main__':
     # initialize the model and move to the computation device
@@ -82,7 +25,7 @@ if __name__ == '__main__':
     # get the model parameters
     params = [p for p in model.parameters() if p.requires_grad]
     # define the optimizer
-    optimizer = torch.optim.SGD(params, lr=0.001, momentum=0.9, weight_decay=0.0005)
+    optimizer = torch.optim.SGD(params, lr=0.01, momentum=0.9, weight_decay=0.05)
     # initialize the Averager class
     train_loss_hist = Averager()
     val_loss_hist = Averager()
@@ -114,7 +57,12 @@ if __name__ == '__main__':
 
             images = list(image.to(DEVICE) for image in images)
             targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
-            loss_dict = model(images, targets)
+
+            loss_dict = model(images)
+
+            bboxLoss = bboxLossFunc(loss_dict[0], targets['boxes'])
+            classLoss = classLossFunc(loss_dict[1], targets['labels'])
+
             losses = sum(loss for loss in loss_dict.values())
             loss_value = losses.item()
             train_loss_list.append(loss_value)
@@ -127,7 +75,6 @@ if __name__ == '__main__':
 
             # update the loss value beside the progress bar for each iteration
             prog_bar_train.set_description(desc=f"Loss: {loss_value:.4f}")
-
 
         prog_bar_val = tqdm(valid_loader, total=len(valid_loader))
 
@@ -146,7 +93,6 @@ if __name__ == '__main__':
             val_itr += 1
             # update the loss value beside the progress bar for each iteration
             prog_bar_val.set_description(desc=f"Loss: {loss_value:.4f}")
-
 
         print(f"Epoch #{epoch} train loss: {train_loss_hist.value:.3f}")
         print(f"Epoch #{epoch} validation loss: {val_loss_hist.value:.3f}")
