@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # load the model and the trained weights
     model = create_model(num_classes=NUM_CLASSES).to(DEVICE)
     model.load_state_dict(torch.load(
-        '../outputs_100/model13.pth', map_location=DEVICE
+        '../outputs_100/model5.pth', map_location=DEVICE
     ))
     model.eval()
     # directory where all the images are present

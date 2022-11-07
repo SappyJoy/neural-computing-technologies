@@ -5,6 +5,7 @@ import time
 import matplotlib.pyplot as plt
 import torch
 from torch.nn import CrossEntropyLoss, MSELoss
+from torch.optim.lr_scheduler import StepLR
 from tqdm.auto import tqdm
 
 from config import DEVICE, NUM_CLASSES, NUM_EPOCHS, OUT_DIR
@@ -25,7 +26,8 @@ if __name__ == '__main__':
     # get the model parameters
     params = [p for p in model.parameters() if p.requires_grad]
     # define the optimizer
-    optimizer = torch.optim.SGD(params, lr=0.01, momentum=0.9, weight_decay=0.05)
+    optimizer = torch.optim.SGD(params, lr=0.001, momentum=0.9, weight_decay=0.01)
+    scheduler = StepLR(optimizer, step_size=1, gamma=0.1)
     # initialize the Averager class
     train_loss_hist = Averager()
     val_loss_hist = Averager()
@@ -55,7 +57,8 @@ if __name__ == '__main__':
         for i, data in enumerate(prog_bar_train):
             images, targets = data
 
-            images = list(image.to(DEVICE) for image in images)
+
+            images =images.to(DEVICE)
             targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
 
             loss_dict = model(images)
@@ -93,6 +96,8 @@ if __name__ == '__main__':
             val_itr += 1
             # update the loss value beside the progress bar for each iteration
             prog_bar_val.set_description(desc=f"Loss: {loss_value:.4f}")
+
+        scheduler.step()
 
         print(f"Epoch #{epoch} train loss: {train_loss_hist.value:.3f}")
         print(f"Epoch #{epoch} validation loss: {val_loss_hist.value:.3f}")

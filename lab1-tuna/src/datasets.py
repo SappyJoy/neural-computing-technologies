@@ -1,13 +1,11 @@
-import cv2
-from torch.utils.data import DataLoader
-from torchvision import transforms
-import random
 import os
-import numpy as np
+import random
+
+from torch.utils.data import DataLoader
 
 from FishnetDataset import FishnetDataset
-from config import BATCH_SIZE, CLASSES, RANDOM_SEED
-from utils import collate_fn, get_train_transform, get_valid_transform, tensor_to_image
+from config import BATCH_SIZE, RANDOM_SEED
+from utils import collate_fn, get_train_transform, get_valid_transform
 
 random.seed(RANDOM_SEED)
 
@@ -20,8 +18,8 @@ valid_dataset = FishnetDataset(
     img_dir="../resources/images",
     transform=get_valid_transform(),
 )
-train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=os.cpu_count(), collate_fn=collate_fn)
-valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=os.cpu_count(), collate_fn=collate_fn)
+train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)#, num_workers=os.cpu_count())#, collate_fn=collate_fn)
+valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_fn)#, num_workers=os.cpu_count())#, collate_fn=collate_fn)
 print(f"Number of training samples: {len(train_dataset)}")
 print(f"Number of validation samples: {len(valid_dataset)}\n")
 
